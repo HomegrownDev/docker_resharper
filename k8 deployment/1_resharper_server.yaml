@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: resharper-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resharper-lb-svc
+  labels:
+    app: resharper
+  namespace: resharper-server
+spec:
+  ports:
+    - port: 8080
+  selector:
+    app: resharper
+    tier: operations
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: resharper-pv-claim
+  labels:
+    app: resharper
+  namespace: resharper-server
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resharper-fls
+  labels:
+    app: resharper
+  namespace: resharper-server
+spec:
+  selector:
+    matchLabels:
+      app: resharper
+      tier: operations
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: resharper
+        tier: operations
+      namespace: resharper-server
+    spec:
+      containers:
+      - image: resharper-fls:{{FLS_VERSION}}
+        name: rehsarper-fls        
+        ports:
+        - containerPort: 8080
+          name: resharper-port
+        volumeMounts:
+        - name: resharper-persistent-storage
+          mountPath: /user/resharper
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: resharper-pv-claim
+      imagePullSecrets:
+      - name: hchbpipeline-reg
