@@ -6,17 +6,19 @@ metadata:
 apiVersion: v1
 kind: Service
 metadata:
-  name: resharper-lb-svc
+  name: resharper-svc
   labels:
     app: resharper
   namespace: resharper-server
 spec:
   ports:
-    - port: 8080
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
   selector:
     app: resharper
     tier: operations
-  type: LoadBalancer
+  type: ClusterIP
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -54,8 +56,8 @@ spec:
       namespace: resharper-server
     spec:
       containers:
-      - image: resharper-fls:{{FLS_VERSION}}
-        name: rehsarper-fls        
+      - image: resharper-fls:latest
+        name: resharper-fls        
         ports:
         - containerPort: 8080
           name: resharper-port
@@ -63,8 +65,8 @@ spec:
         - name: resharper-persistent-storage
           mountPath: /user/resharper
       volumes:
-      - name: mysql-persistent-storage
+      - name: resharper-persistent-storage
         persistentVolumeClaim:
           claimName: resharper-pv-claim
       imagePullSecrets:
-      - name: hchbpipeline-reg
+      - name: container-reg

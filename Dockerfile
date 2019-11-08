@@ -1,6 +1,7 @@
 FROM openjdk:14-slim
 ADD https://download.jetbrains.com/lcsrv/license-server-installer.zip /usr/
 COPY startup.sh ./
+COPY Readme.md ./
 RUN apt-get update \
     && apt-get install unzip \
     && mkdir /usr/resharper \
